@@ -94,37 +94,38 @@ server <- function(input, output) {
     req(input$year, input$metric)
     
     data <- filtered_data %>% 
-      filter(Date == input$year)
+      filter(Date == input$year) %>% 
+      select(state, value = input$metric)
+    
+    # Getting rid of rows with NA values
+    data <- subset(data, !is.na(value))
     
     # Geojoining the states geolayer and the cleaned mappable data.
     data <- geo_join(states, data, "STUSPS", "state")
     
-    # Getting rid of rows with NA values
-    data <- subset(data, !is.na(CostPerSqFt))
-    
     # Creating a color palette based on the number range in the total column
-    pal <- colorNumeric("Greens", domain=data$CostPerSqFt)
+    pal <- colorNumeric("Greens", domain=data$value)
     
     leaflet() %>%
       addProviderTiles("CartoDB.Positron") %>%
       setView(-98.483330, 38.712046, zoom = 4) %>% 
       addPolygons(data = data , 
-                  fillColor = ~pal(data$CostPerSqFt), 
+                  fillColor = ~pal(data$value), 
                   fillOpacity = 0.7, 
                   weight = 0.2, 
                   smoothFactor = 0.2 #, 
                   # popup = ~popup_sb
       ) %>%
       addLegend(pal = pal, 
-                values = data$CostPerSqFt, 
+                values = data$value, 
                 position = "bottomright", 
-                title = "Cost of housing per square feet.")
+                title = "Cost of housing based on size.")
   })
   
   output$data <- renderDataTable({
     filtered <- reactive({
       df<- filtered_data %>%
-        filter(Date == input$year) %>% 
+        filter(Date == input$year)
         as_data_frame()
     })
     filtered()
