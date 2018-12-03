@@ -1,0 +1,76 @@
+---
+title: "An Analysis of Housing Prices in the US"
+author: "Shriank Kanaparti"
+date: "12/2/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE, warning=FALSE}
+# Loading Tidyverse
+library(tidyverse)
+# Loading Leaflet
+library(leaflet)
+# Loading Tigris
+library(tigris)
+
+# Getting states geo files.
+states <- states(cb=T)
+
+# Loading Zillow's CSV about Housing prices in the US.
+data <- read_csv("State_time_series.csv")
+```
+
+```{r mapping}
+# Creating a mappable object.
+mappable <- data %>%
+  # Filtering by date
+  filter(Date == "1998-01-31") %>% 
+  # Matching state name with its abbreviations.
+  # First the initial string is split based on the case, i.e. "NewJersey" -> "New Jersey"
+  # After that, the names of the states are converted into abbreviations, i.e. "New Jersey" -> "NJ"
+  # This abbreviation is stored in the newly mutated `state` column.
+  mutate(state = state.abb[match(
+    substring(
+      gsub(
+        '([[:upper:]])', ' \\1', RegionName
+      ), 
+    2), state.name)]) %>% 
+  # Selecting Relevant columns of the cleaned dataset, pertaining to cost of houses.
+  select(
+    state,
+    `CostPerSqFt` = ZHVIPerSqft_AllHomes,
+    `1BHK` = ZHVI_1bedroom, 
+    `2BHK` = ZHVI_2bedroom,
+    `3BHK` = ZHVI_3bedroom, 
+    `4BHK` = ZHVI_4bedroom, 
+    `5BHK+` = ZHVI_5BedroomOrMore
+  )
+
+# Geojoining the states geolayer and the cleaned mappable data.
+data <- geo_join(states, mappable, "STUSPS", "state")
+
+# Getting rid of rows with NA values
+data <- subset(data, !is.na(CostPerSqFt))
+
+# Creating a color palette based on the number range in the total column
+pal <- colorNumeric("Greens", domain=data$CostPerSqFt)
+
+# Setting up the pop up text
+# popup_sb <- paste0("Total: ", as.character(data$total))
+
+# Mapping it with the new tiles CartoDB.Positron
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  setView(-98.483330, 38.712046, zoom = 4) %>% 
+  addPolygons(data = data , 
+              fillColor = ~pal(data$CostPerSqFt), 
+              fillOpacity = 0.7, 
+              weight = 0.2, 
+              smoothFactor = 0.2 #, 
+              # popup = ~popup_sb
+              ) %>%
+  addLegend(pal = pal, 
+            values = data$CostPerSqFt, 
+            position = "bottomright", 
+            title = "Cost of housing per square feet.")
+```

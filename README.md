@@ -1,1 +1,5 @@
-# gov1005-final-project
+# An Analysis of Housing Prices in the US.
+
+The Huffington Post released an article in 2018 titled - ["America's Housing Crisis is a Ticking Time Bomb"](https://www.huffingtonpost.com/entry/housing-crisis-inequality-harvard-report_us_5b27c1f1e4b056b2263c621e) - which hypothesises that low cost housining is disappearing from the US housing market, America isn't building enough homes to serve the rate of increase of the population, and that on the whole America's cities are unaffordable for most of the countries working class population.
+
+The aim of this app is to help people learn more about the trends and deviations of the housing prices in the various states of the US over the past 2 decades. The data is sourced from Zillow, which is an online realestate data company founded in 2006, that has collected data about the various statistics about housing in the US between 1996 to 2017. The data is available on [Quandl](https://www.quandl.com/data/ZILLOW-Zillow-Real-Estate-Research/usage/quickstart/api).
