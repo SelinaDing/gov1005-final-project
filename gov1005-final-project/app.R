@@ -148,7 +148,7 @@ server <- function(input, output) {
   output$data <- renderDataTable({
     filtered <- reactive({
       df<- filtered_data %>%
-        filter(Date == input$year)
+        filter(Date == input$year) %>% 
         as_data_frame()
     })
     filtered()
