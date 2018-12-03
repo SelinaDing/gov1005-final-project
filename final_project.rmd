@@ -56,7 +56,7 @@ data <- subset(data, !is.na(CostPerSqFt))
 pal <- colorNumeric("Greens", domain=data$CostPerSqFt)
 
 # Setting up the pop up text
-# popup_sb <- paste0("Total: ", as.character(data$total))
+popup_sb <- paste0("Total: ", as.character(data$CostPerStFt))
 
 # Mapping it with the new tiles CartoDB.Positron
 leaflet() %>%

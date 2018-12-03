@@ -44,6 +44,11 @@ year_choices <- filtered_data %>%
   group_by(Date) %>% 
   summarise()
 
+# Deriving the options for the "dates".
+state_choices <- filtered_data %>% 
+  group_by(state) %>% 
+  summarise()
+
 # Deriving the options for the "gender" input panel.
 metric_choices <- filtered_data %>%
   select(-1, -2) %>%
@@ -66,7 +71,11 @@ ui <- fluidPage( theme = shinytheme("slate"),
                      selectInput(inputId = "metric",
                                  label = "Metric",
                                  choices = metric_choices,
-                                 selected = "1BHK")
+                                 selected = "1BHK"),
+                     selectInput(inputId = "state",
+                                 label = "State",
+                                 choices = state_choices,
+                                 selected = "NY")
                    ),
                    
                    # Show a plot of the generated distribution
@@ -81,6 +90,8 @@ ui <- fluidPage( theme = shinytheme("slate"),
                                           ),
                                  # Tab for viewing map!
                                  tabPanel("Map", leafletOutput("mymap")),
+                                 # Tab for viewing linechart!
+                                 tabPanel("Plot", plotOutput("lineChart")),
                                  # Tab for the data view!
                                  tabPanel("Data Table", dataTableOutput("data")))
                                  )
@@ -106,6 +117,8 @@ server <- function(input, output) {
     # Creating a color palette based on the number range in the total column
     pal <- colorNumeric("Greens", domain=data$value)
     
+    popup_sb <- paste0("Cost: ", as.character(data$value))
+    
     leaflet() %>%
       addProviderTiles("CartoDB.Positron") %>%
       setView(-98.483330, 38.712046, zoom = 4) %>% 
@@ -113,13 +126,23 @@ server <- function(input, output) {
                   fillColor = ~pal(data$value), 
                   fillOpacity = 0.7, 
                   weight = 0.2, 
-                  smoothFactor = 0.2 #, 
-                  # popup = ~popup_sb
+                  smoothFactor = 0.2, 
+                  popup = ~popup_sb
       ) %>%
       addLegend(pal = pal, 
                 values = data$value, 
                 position = "bottomright", 
                 title = "Cost of housing based on size.")
+  })
+  
+  output$lineChart <- renderPlot({
+    req(input$state, input$metric)
+    
+    data <- filtered_data %>% 
+      filter(state == input$state) %>% 
+      select(state, Date, value = input$metric)
+    
+    ggplot(data, aes(x = Date, y = value)) + geom_line(color = "Red")
   })
   
   output$data <- renderDataTable({
@@ -130,6 +153,7 @@ server <- function(input, output) {
     })
     filtered()
   })
+  
 }
 
 # Run the application 
